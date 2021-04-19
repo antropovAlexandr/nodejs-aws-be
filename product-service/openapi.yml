@@ -1,0 +1,21 @@
+openapi: 3.0.0
+components:
+  schemas: {}
+  securitySchemes: {}
+info:
+  title: NODEJS in AWS aip
+  description: description NODEJS in AWS aip
+  version: '1'
+paths:
+  /products:
+    get:
+      operationId: getProductsList
+      summary: List of products
+      description: Return list ol products
+      responses: {}
+  '/products/{productId}':
+    get:
+      operationId: getProductsById
+      summary: Product
+      description: Return product by id
+      responses: {}
