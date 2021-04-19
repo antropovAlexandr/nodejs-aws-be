@@ -1,7 +1,17 @@
-import { getCourses } from "../service";
-// @ts-ignore
-import responseCourses from '../../__moks__/responseCourses.json';
+import { getCoursesService } from "../service";
 
+import responseCourses from '../../__moks__/responseCourses';
+jest.mock('pg', () => {
+    // const rows =  [...responseCourses];
+    const mClient = {
+        connect: jest.fn(),
+        query: () => ({
+            rows: []
+        }),
+        end: jest.fn(),
+    };
+    return { Client: jest.fn(() => mClient) };
+});
 
 describe('GetProductList Service', () => {
     beforeEach(() => {
@@ -9,7 +19,7 @@ describe('GetProductList Service', () => {
     });
 
     it('should return correct data from getCourses', () => {
-        return getCourses().then(data => {
+        return getCoursesService().then(data => {
             expect(data).toEqual(responseCourses);
         });
     });

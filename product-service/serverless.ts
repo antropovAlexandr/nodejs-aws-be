@@ -1,11 +1,13 @@
 import type { AWS } from '@serverless/typescript';
 
-import { getProductsList, getProductsById } from './src/functions';
+import { getProductsList, getProductsById, addProduct } from './src/functions';
 
 const serverlessConfiguration: AWS = {
   service: 'product-service',
   frameworkVersion: '2',
   custom: {
+    stage: "${opt:stage, self:provider.stage}",
+    environment: "${file(env.yml):${self:custom.stage}, file(env.yml):default}",
     webpack: {
       webpackConfig: './webpack.config.js',
       includeModules: true,
@@ -32,12 +34,18 @@ const serverlessConfiguration: AWS = {
     },
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+      PG_HOST: "${self:custom.environment.PG_HOST}",
+      PG_PORT: "${self:custom.environment.PG_PORT}",
+      PG_DATABASE: "${self:custom.environment.PG_DATABASE}",
+      PG_USERNAME: "${self:custom.environment.PG_USERNAME}",
+      PG_PASSWORD: "${self:custom.environment.PG_PASSWORD}",
     },
     lambdaHashingVersion: '20201221',
   },
   functions: {
     getProductsList,
-    getProductsById
+    getProductsById,
+    addProduct
   },
 };
 

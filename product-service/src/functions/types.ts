@@ -23,11 +23,17 @@ export type EdxCoursesResponseType = {
 };
 
 export type CourseType = {
-    title: string;
     id: string;
-    description: string,
-    start: string;
-    end: string;
-    image: string;
+    title: string;
+    description: string;
     price: number;
+    count: number;
+    product_id: string;
+}
+
+export type CourseRequestType = {
+    title: string;
+    description: string;
+    price: number;
+    count: number;
 }

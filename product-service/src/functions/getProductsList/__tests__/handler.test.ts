@@ -1,5 +1,6 @@
 import { getProductsList } from "../handler";
 
+jest.mock('../service');
 
 describe('GetProductList Handler', () => {
     beforeEach(() => {
