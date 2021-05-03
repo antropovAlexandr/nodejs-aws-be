@@ -1,6 +1,6 @@
 import { getCourseById } from "../service";
 // @ts-ignore
-import responseCourses from '../../__moks__/responseCourses.json';
+import responseCourses from '../../__moks__/responseCourses';
 
 
 describe('getProductsById Service', () => {

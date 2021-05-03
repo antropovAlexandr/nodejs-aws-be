@@ -1,12 +1,18 @@
-import { courseAdapter } from "./adapter";
-import { EdxCourseType, CourseType } from "@functions/types";
-// @ts-ignore
-import responseEdxCourses from "../__moks__/responseEdxCourses.json";
+import { Client} from 'pg';
+import { CourseType } from "@functions/types";
+import { dbOptions } from "@libs/database";
 
 
 export const getCourseById: (id) => Promise<CourseType | undefined> = async (id: string) => {
-    const course: EdxCourseType | undefined = await new Promise(resolve =>
-        setTimeout(() => resolve(responseEdxCourses.data.results.find(course => course.id === id)), 1000)
-    );
-    return course ? courseAdapter(course) : undefined;
+    const client = new Client(dbOptions);
+    try {
+        await client.connect();
+        const { rows: product } = await client.query('select * from products JOIN stocks ON products.Id = stocks.product_id where products.id=$1 LIMIT 1', [id]);
+        return product;
+    }catch (error) {
+        console.log('DB error', error);
+        throw new DatabaseError('DB error');
+    } finally {
+        client.end();
+    }
 }

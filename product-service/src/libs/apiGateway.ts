@@ -1,7 +1,11 @@
-import type { APIGatewayProxyResult } from "aws-lambda"
+import type { APIGatewayProxyEvent, APIGatewayProxyResult, Handler } from 'aws-lambda';
+import type { FromSchema } from 'json-schema-to-ts';
 
 export const DEFAULT_ERROR_CODE = 500;
 export const DEFAULT_ERROR_MESSAGE = 'Internal Server Error';
+
+type ValidatedAPIGatewayProxyEvent<S> = Omit<APIGatewayProxyEvent, 'body'> & { body: FromSchema<S> };
+export type ValidatedEventAPIGatewayProxyEvent<S> = Handler<ValidatedAPIGatewayProxyEvent<S>, APIGatewayProxyResult>;
 
 const headers = {
   "Access-Control-Allow-Headers" : "*",
