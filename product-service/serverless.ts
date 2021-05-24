@@ -1,6 +1,6 @@
 import type { AWS } from '@serverless/typescript';
 
-import { getProductsList, getProductsById, addProduct } from './src/functions';
+import { getProductsList, getProductsById, addProduct, catalogBatchProcess } from './src/functions';
 
 const serverlessConfiguration: AWS = {
   service: 'product-service',
@@ -11,6 +11,9 @@ const serverlessConfiguration: AWS = {
     webpack: {
       webpackConfig: './webpack.config.js',
       includeModules: true,
+    },
+    sqsArn: {
+      "Fn::GetAtt": ["catalogItemsQueue", "Arn"],
     },
     documentation: {
       version: '1',
@@ -23,6 +26,63 @@ const serverlessConfiguration: AWS = {
       'serverless-webpack',
       'serverless-openapi-documentation'
   ],
+  resources: {
+    Resources: {
+      catalogItemsQueue: {
+        Type: "AWS::SQS::Queue",
+        Properties: {
+          QueueName: "cvs-sqs",
+        },
+      },
+      createProductTopic: {
+        Type: "AWS::SNS::Topic",
+        Properties: {
+          TopicName: "notify-about-products",
+        },
+      },
+      SNSSubscriptionSuccess: {
+        Type: "AWS::SNS::Subscription",
+        Properties: {
+          //TODO: move to env vars
+          Endpoint: "dmitrii_esin@epam.com",
+          Protocol: "email",
+          TopicArn: {
+            Ref: "createProductTopic",
+          },
+          //TODO: move to env vars
+          FilterPolicy: {
+            status: ["success"],
+          },
+        },
+      },
+      SNSSubscriptionFailure: {
+        Type: "AWS::SNS::Subscription",
+        Properties: {
+          Endpoint: "antopov.a.i@gmail.com",
+          Protocol: "email",
+          TopicArn: {
+            Ref: "createProductTopic",
+          },
+          FilterPolicy: {
+            status: ["failure"],
+          },
+        },
+      },
+    },
+    Outputs: {
+      SqsUrl: {
+        Value: {
+          Ref: "catalogItemsQueue",
+        },
+      },
+      SqsArn: {
+        Value: "${self:custom.sqsArn}",
+        Export: {
+          Name: "SqsArn",
+        },
+      },
+    },
+  },
   provider: {
     name: 'aws',
     runtime: 'nodejs14.x',
@@ -39,13 +99,39 @@ const serverlessConfiguration: AWS = {
       PG_DATABASE: "${self:custom.environment.PG_DATABASE}",
       PG_USERNAME: "${self:custom.environment.PG_USERNAME}",
       PG_PASSWORD: "${self:custom.environment.PG_PASSWORD}",
+      SNS_ARN: {
+        Ref: "createProductTopic",
+      },
+    },
+    iam: {
+      role: {
+        statements: [
+          {
+            Effect: "Allow",
+            Action: "sqs:*",
+            Resource: [
+              {
+                "Fn::GetAtt": ["catalogItemsQueue", "Arn"],
+              },
+            ],
+          },
+          {
+            Effect: "Allow",
+            Action: "sns:*",
+            Resource: {
+              Ref: "createProductTopic",
+            },
+          },
+        ],
+      },
     },
     lambdaHashingVersion: '20201221',
   },
   functions: {
     getProductsList,
     getProductsById,
-    addProduct
+    addProduct,
+    catalogBatchProcess,
   },
 };
 
