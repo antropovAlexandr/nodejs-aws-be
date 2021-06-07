@@ -32,7 +32,12 @@ const serverlessConfiguration: AWS = {
         Effect: 'Allow',
         Action: ['s3:*'],
         Resource: 'arn:aws:s3:::nodejs-aws-uploaded/*',
-      }
+      },
+      {
+        Effect: "Allow",
+        Action: "sqs:SendMessage",
+        Resource: "${cf:product-service-dev.SqsArn}",
+      },
     ],
     apiGateway: {
       minimumCompressionSize: 1024,
@@ -40,6 +45,7 @@ const serverlessConfiguration: AWS = {
     },
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+      SQS_URL: "${cf:product-service-dev.SqsUrl}",
     },
     lambdaHashingVersion: '20201221',
   },

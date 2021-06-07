@@ -1,4 +1,4 @@
-import { S3 } from 'aws-sdk';
+import { S3, SQS } from 'aws-sdk';
 import csv from 'csv-parser';
 
 
@@ -17,12 +17,21 @@ export const parseFile: (fileName) => Promise<void> = async (fileName) => {
     const readStream = await s3.getObject(params).createReadStream();
     console.log('start readStream');
 
+    const sqs = new SQS()
     await new Promise<void>((res) => {
         readStream
         .pipe(csv())
         .on('data', data => {
             results.push(data);
             console.log('data', data);
+
+            sqs.sendMessage({
+                QueueUrl: process.env.SQS_URL,
+                MessageBody: JSON.stringify(data),
+            }, (error,) => {
+                console.log('send message');
+                console.log('error send message', error);
+            })
         })
         .on('end', async () => {
             console.log('Parsed successfully');
